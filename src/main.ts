@@ -3,35 +3,12 @@ import "./style.css";
 import { CommitStrategy, RealtimeConnection, RealtimeEvents, Scribe } from "@elevenlabs/client";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 import { html, render } from "lit";
+import { WikiSpyApi } from "./wiki-spy-api";
 
 const LOCAL_STORAGE_KEY = "elevenlabs_api_key";
 const INACTIVITY_DELAY = 800;
-const WIKI_SPY_BASE_URL = "https://wiki-spy-uaew8.ondigitalocean.app";
 
-interface Mask {
-  w: number;
-  h: number;
-  b: string;
-}
-
-interface WikiObject {
-  url: string;
-  title: string;
-  imageTitle: string;
-  pageUrl: string;
-  articleUrl: string;
-  description: string;
-  extract: string;
-  license: string;
-  licenseUrl: string;
-  artist: string;
-  imageDescUrl: string;
-  width: number;
-  height: number;
-  cutoutId: number;
-  mask: Mask;
-  shuffle: number;
-}
+const wikiSpyApi = new WikiSpyApi();
 
 interface DisplayedCutout {
   cutoutId: number;
@@ -172,13 +149,7 @@ async function fetchWikiSpyResults(query: string): Promise<void> {
   renderApp();
 
   try {
-    const searchUrl = `${WIKI_SPY_BASE_URL}/search?q=${encodeURIComponent(normalizedQuery)}&limit=4`;
-    const res = await fetch(searchUrl);
-    if (!res.ok) {
-      throw new Error(`Wiki-Spy API error: ${res.status}`);
-    }
-
-    const data: { results?: WikiObject[] } = await res.json();
+    const data = await wikiSpyApi.search({ q: normalizedQuery, limit: 4 });
 
     if (requestId !== activeRequestId) {
       return;
